@@ -1,23 +1,40 @@
-# Sticker Studio Android
+# APK Forge 0.1
 
-Proyecto Android nativo que integra el editor web original mediante WebView y añade:
+APK Forge is an Android project manager/front-end for a local build toolchain. It does **not** bundle a full Android SDK/Gradle toolchain inside its APK. It uses Termux + Termux Studio as the local build engine.
 
-- Selector de imágenes Android mediante ACTION_OPEN_DOCUMENT, sin permiso global de galería.
-- Persistencia local del editor en WebView.
-- Sincronización de stickers WebP al almacenamiento privado de la app.
-- ContentProvider de solo lectura y acción de solicitud de incorporación a WhatsApp.
-- Compilación APK mediante GitHub Actions.
+## Requirements
+- Android 11+ recommended
+- ARM64 device
+- Termux from F-Droid or official GitHub releases (not Play Store)
+- About 3 GB free space for first-time toolchain installation
+- Internet for initial installation and dependency downloads
 
-## Compilar desde GitHub con Android
+## Install the APK Forge app
+Upload this project to a GitHub repository and run the workflow in `.github/workflows/build.yml`. Download the `APK-Forge-debug` artifact.
 
-1. Crea un repositorio y sube **todo el contenido** de esta carpeta a la raíz.
-2. Abre Actions y ejecuta `Build Sticker Studio APK`.
-3. Al finalizar, abre el artefacto `Sticker-Studio-APK` y descarga el APK.
+## Install the local build engine
+In Termux:
+```sh
+pkg update -y && pkg install -y git
+git clone https://github.com/poordevcode/termux-android-studio.git ~/termux-studio
+bash ~/termux-studio/install.sh
+source ~/.bashrc
+studio doctor
+```
 
-## Requisitos de stickers
+## Current MVP workflow
+1. Open APK Forge and import an Android Gradle project ZIP.
+2. APK Forge copies the ZIP to `Download/APKForge/Projects/`.
+3. Tap "Copiar comando de compilación" and paste the command into Termux.
+4. Locate the folder containing `settings.gradle` or `settings.gradle.kts`.
+5. Run `studio build "/path/to/project"` (or `studio build .` from its root).
+6. The output is normally in `app/build/outputs/apk/debug/`.
 
-Para habilitar el botón de WhatsApp se requieren entre 3 y 30 stickers. Cada WebP debe ser de hasta 100 KB. La integración depende de que WhatsApp acepte el paquete y del contrato de ContentProvider vigente en la versión instalada.
+## Current limitations
+- This is a first MVP, not a self-contained compiler.
+- The app imports ZIP files and prepares a Termux workflow; it does not yet extract/compile projects internally or stream build logs inside the app.
+- Release signing and APK collection will be added in later versions.
+- The Termux Studio project is third-party software; APK Forge does not own or bundle its toolchain.
 
-## Nota de compatibilidad
-
-Este proyecto implementa la integración Android basada en el contrato público de WhatsApp, pero debe probarse en un dispositivo real y con WhatsApp instalado. La primera compilación es de depuración; no es una publicación firmada para Play Store. El editor no solicita permiso general para fotos: el selector del sistema concede acceso únicamente a la imagen elegida.
+## License
+APK Forge sample app code: MIT. Termux Studio is a separate project with its own Apache-2.0 license.
