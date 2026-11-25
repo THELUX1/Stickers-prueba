@@ -75,26 +75,19 @@ $('undoBtn').onclick=()=>{const previous=history.pop();if(!previous){toast('No h
 $('clearCutBtn').onclick=()=>{if(!sourceImage)return;if(!confirm('¿Restaurar la imagen original?'))return;const ratio=Math.min(W/sourceImage.width,H/sourceImage.height)*.78;baseCtx.clearRect(0,0,W,H);pristineCtx.clearRect(0,0,W,H);baseCtx.drawImage(sourceImage,(W-sourceImage.width*ratio)/2,(H-sourceImage.height*ratio)/2,sourceImage.width*ratio,sourceImage.height*ratio);pristineCtx.drawImage(sourceImage,(W-sourceImage.width*ratio)/2,(H-sourceImage.height*ratio)/2,sourceImage.width*ratio,sourceImage.height*ratio);history=[];render()};
 document.querySelectorAll('.tool-tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tool-tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tool-panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.panel))});
 
-async function makeBlob(){
- const qualities=[0.90,0.82,0.74,0.66,0.58,0.50];
- for(const q of qualities){
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',q));
-  if(blob && blob.size<=100*1024) return blob;
- }
- return new Promise(resolve=>canvas.toBlob(resolve,'image/webp',0.42));
-}
+async function makeBlob(){for(let q=.88;q>=.35;q-=.08){const b=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',q));if(b&&b.size<=100*1024)return b}return new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.25))}
 async function saveSticker(){
  if(!sourceImage)return;if(stickers.length>=30){toast('El paquete ya tiene 30 stickers');return}
- const blob=await makeBlob();if(!blob){toast('No se pudo crear el sticker');return}
+ const blob=await makeBlob();if(!blob){toast('No se pudo crear el sticker');return}if(blob.size>100*1024){toast('La imagen supera 100 KB. Reduce detalles o prueba otra imagen.');return}
  const data=await blobToDataURL(blob);stickers.push({id:Date.now()+Math.random(),data});persist();renderPack();toast('Sticker guardado en tu colección')
 }
 function blobToDataURL(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob)})}
 $('saveStickerBtn').onclick=saveSticker;
-function persist(){try{localStorage.setItem('stickerStudioData',JSON.stringify({stickers,packName,packAuthor}))}catch(e){toast('Almacenamiento lleno. Exporta tus stickers para no perderlos.')}}
+function persist(){try{const payload={stickers,packName,packAuthor};localStorage.setItem('stickerStudioData',JSON.stringify(payload));if(window.AndroidStickerBridge&&AndroidStickerBridge.syncPack)AndroidStickerBridge.syncPack(JSON.stringify(payload));}catch(e){toast('Almacenamiento lleno. Exporta tus stickers para no perderlos.')}}
 function loadSaved(){try{const d=JSON.parse(localStorage.getItem('stickerStudioData')||'{}');stickers=Array.isArray(d.stickers)?d.stickers:[];packName=d.packName||packName;packAuthor=d.packAuthor||packAuthor}catch(e){stickers=[]}}
 function renderPack(){
  $('stickerCount').textContent=stickers.length+' / 30';$('packNamePreview').textContent=packName;$('packAuthorPreview').textContent=packAuthor;
- $('emptyPack').style.display=stickers.length?'none':'flex';$('exportAllBtn').disabled=!stickers.length;$('addWhatsAppBtn').disabled=stickers.length<3||stickers.length>30;
+ $('emptyPack').style.display=stickers.length?'none':'flex';$('exportAllBtn').disabled=!stickers.length;$('addWhatsAppBtn').disabled=stickers.length<3;
  const grid=$('stickerGrid');grid.innerHTML='';
  stickers.forEach((s,i)=>{const tile=document.createElement('div');tile.className='sticker-tile';const img=document.createElement('img');img.src=s.data;img.alt='Sticker '+(i+1);const del=document.createElement('button');del.className='delete-sticker';del.textContent='×';del.setAttribute('aria-label','Eliminar sticker');del.onclick=()=>{if(confirm('¿Eliminar este sticker?')){stickers.splice(i,1);persist();renderPack()}};tile.append(img,del);grid.append(tile)});
 }
@@ -103,24 +96,8 @@ $('createFirstBtn').onclick=()=>showView('editorView');
 $('editPackBtn').onclick=()=>{$('packName').value=packName;$('packAuthor').value=packAuthor;$('packDialog').showModal()};
 $('packForm').addEventListener('submit',e=>{if(e.submitter?.value==='save'){packName=$('packName').value.trim()||'Mi paquete';packAuthor=$('packAuthor').value.trim()||'Creado por mí';persist();renderPack();toast('Paquete actualizado')}});
 async function downloadSticker(sticker,index){const a=document.createElement('a');a.href=sticker.data;a.download=`sticker-${String(index+1).padStart(2,'0')}.webp`;document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,180))}
-
-$('addWhatsAppBtn').onclick=async()=>{
- if(stickers.length<3){toast('WhatsApp requiere al menos 3 stickers');return}
- if(stickers.length>30){toast('El paquete admite hasta 30 stickers');return}
- if(!window.StickerBridge||!window.StickerBridge.addPack){
-  toast('Para añadir a WhatsApp, abre esta herramienta desde la aplicación Android');
-  return;
- }
- const payload={name:packName,publisher:packAuthor,stickers:stickers.map(s=>s.data)};
- try{
-  $('addWhatsAppBtn').disabled=true;
-  toast('Preparando paquete para WhatsApp…');
-  window.StickerBridge.addPack(JSON.stringify(payload));
- }catch(err){toast('No se pudo preparar el paquete')}
- finally{$('addWhatsAppBtn').disabled=stickers.length<3}
-};
-
 $('exportAllBtn').onclick=async()=>{for(let i=0;i<stickers.length;i++)await downloadSticker(stickers[i],i);toast('Exportación iniciada. Revisa tus descargas.')};
+$('addWhatsAppBtn').onclick=()=>{if(stickers.length<3){toast('Necesitas al menos 3 stickers');return}if(window.AndroidStickerBridge&&AndroidStickerBridge.addToWhatsApp)AndroidStickerBridge.addToWhatsApp();else toast('Esta función está disponible en la aplicación Android')};
 async function shareSticker(s,index){
  try{const blob=await (await fetch(s.data)).blob();const file=new File([blob],`sticker-${index+1}.webp`,{type:'image/webp'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Sticker'});return}
@@ -128,4 +105,4 @@ async function shareSticker(s,index){
  }catch(e){if(e.name!=='AbortError')toast('No se pudo compartir. Prueba descargándolo.')}
 }
 $('stickerGrid').addEventListener('click',e=>{if(e.target.tagName==='IMG'){const i=[...$('stickerGrid').querySelectorAll('img')].indexOf(e.target);shareSticker(stickers[i],i)}});
-loadSaved();renderPack();render();updateOutputs();
+loadSaved();if(window.AndroidStickerBridge&&AndroidStickerBridge.syncPack)AndroidStickerBridge.syncPack(JSON.stringify({stickers,packName,packAuthor}));renderPack();render();updateOutputs();
