@@ -1,1 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10111a">
+  <title>Sticker Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Sticker Studio"><span class="brand-icon">✦</span><span>sticker<span class="brand-light">studio</span></span></a>
+    <button id="newProjectBtn" class="icon-btn" title="Nuevo proyecto" aria-label="Nuevo proyecto">＋</button>
+  </header>
 
+  <main>
+    <section id="editorView" class="view active">
+      <div class="heading-row">
+        <div><p class="eyebrow">CREA ALGO ÚNICO</p><h1>Tu próximo sticker</h1></div>
+        <span class="step-pill">EDITOR</span>
+      </div>
+
+      <div class="workspace">
+        <div class="canvas-wrap">
+          <div class="canvas-grid"></div>
+          <canvas id="stickerCanvas" width="512" height="512" aria-label="Vista previa del sticker"></canvas>
+          <div id="emptyState" class="empty-state">
+            <div class="upload-symbol">↑</div>
+            <strong>Tu lienzo está vacío</strong>
+            <span>Importa una imagen para comenzar</span>
+            <button id="emptyUploadBtn" class="primary-btn">Elegir imagen</button>
+          </div>
+        </div>
+        <div class="canvas-footer">
+          <span><i class="status-dot"></i> Lienzo 512 × 512</span>
+          <span>Fondo transparente</span>
+        </div>
+      </div>
+
+      <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/*" hidden>
+      <div class="main-actions">
+        <button id="uploadBtn" class="primary-btn"><span>＋</span> Importar imagen</button>
+        <button id="saveStickerBtn" class="secondary-btn" disabled>Guardar sticker</button>
+      </div>
+
+      <div class="tool-section">
+        <div class="section-title"><h2>Herramientas</h2><span class="hint">Edita tu diseño</span></div>
+        <div class="tool-tabs">
+          <button class="tool-tab active" data-panel="imagePanel"><span>▧</span> Imagen</button>
+          <button class="tool-tab" data-panel="textPanel"><span>T</span> Texto</button>
+          <button class="tool-tab" data-panel="cutPanel"><span>✂</span> Recorte</button>
+        </div>
+
+        <div id="imagePanel" class="tool-panel active">
+          <div class="control-row"><label for="scaleRange">Tamaño</label><output id="scaleValue">100%</output></div>
+          <input id="scaleRange" type="range" min="40" max="150" value="100">
+          <div class="control-row"><label for="rotateRange">Rotación</label><output id="rotateValue">0°</output></div>
+          <input id="rotateRange" type="range" min="-180" max="180" value="0">
+          <div class="control-row"><label for="outlineRange">Contorno blanco</label><output id="outlineValue">0 px</output></div>
+          <input id="outlineRange" type="range" min="0" max="24" value="0">
+          <div class="control-row"><label for="shadowRange">Sombra</label><output id="shadowValue">0</output></div>
+          <input id="shadowRange" type="range" min="0" max="30" value="0">
+          <div class="button-line">
+            <button id="fitBtn" class="small-btn">Ajustar al lienzo</button>
+            <button id="resetImageBtn" class="small-btn">Restablecer</button>
+          </div>
+        </div>
+
+        <div id="textPanel" class="tool-panel">
+          <label class="field-label" for="stickerText">Texto del sticker</label>
+          <input id="stickerText" class="text-input" type="text" maxlength="45" placeholder="Escribe algo...">
+          <div class="two-fields">
+            <div><label class="field-label" for="fontSelect">Tipografía</label>
+              <select id="fontSelect"><option value="Arial">Arial</option><option value="Impact">Impact</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet</option><option value="monospace">Monospace</option></select>
+            </div>
+            <div><label class="field-label" for="textColor">Color</label><input id="textColor" class="color-input" type="color" value="#ffffff"></div>
+          </div>
+          <div class="control-row"><label for="textSize">Tamaño del texto</label><output id="textSizeValue">48 px</output></div>
+          <input id="textSize" type="range" min="16" max="100" value="48">
+          <div class="control-row"><label for="textOutline">Contorno del texto</label><output id="textOutlineValue">3 px</output></div>
+          <input id="textOutline" type="range" min="0" max="12" value="3">
+          <div class="button-line">
+            <button id="textTopBtn" class="small-btn">Texto arriba</button>
+            <button id="textBottomBtn" class="small-btn">Texto abajo</button>
+          </div>
+        </div>
+
+        <div id="cutPanel" class="tool-panel">
+          <p class="panel-note">Borra manualmente el fondo o recupera partes de la imagen. Acerca el lienzo con los controles de tu navegador si necesitas precisión.</p>
+          <div class="segmented">
+            <button id="eraseModeBtn" class="selected">Borrar</button>
+            <button id="restoreModeBtn">Restaurar</button>
+          </div>
+          <div class="control-row"><label for="brushRange">Tamaño del pincel</label><output id="brushValue">28 px</output></div>
+          <input id="brushRange" type="range" min="5" max="100" value="28">
+          <div class="button-line">
+            <button id="undoBtn" class="small-btn">↶ Deshacer</button>
+            <button id="clearCutBtn" class="small-btn">Limpiar cambios</button>
+          </div>
+          <p class="tiny-note">El borrado manual funciona sin subir tus imágenes a ningún servidor. La eliminación automática de fondo se añadirá en una siguiente etapa.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="packView" class="view">
+      <div class="heading-row"><div><p class="eyebrow">TU COLECCIÓN</p><h1>Mis stickers</h1></div><span id="stickerCount" class="count-pill">0 / 30</span></div>
+      <div class="pack-card">
+        <div class="pack-icon">✦</div>
+        <div class="pack-info"><strong id="packNamePreview">Mi paquete</strong><span id="packAuthorPreview">Creado por mí</span></div>
+        <button id="editPackBtn" class="edit-btn">Editar</button>
+      </div>
+      <div id="stickerGrid" class="sticker-grid"></div>
+      <div id="emptyPack" class="empty-pack"><div>▧</div><strong>Aún no tienes stickers</strong><span>Los stickers que guardes aparecerán aquí.</span><button id="createFirstBtn" class="primary-btn">Crear mi primer sticker</button></div>
+      <div class="export-card">
+        <div><strong>¿Listo para compartir?</strong><span>Exporta tus stickers o compártelos desde Android.</span></div>
+        <button id="addWhatsAppBtn" class="primary-btn" disabled>＋ Añadir paquete a WhatsApp</button>
+        <button id="exportAllBtn" class="secondary-btn" disabled>Exportar stickers individualmente</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="editorView"><span>✎</span><small>Editor</small></button>
+    <button class="nav-item" data-view="packView"><span>▦</span><small>Mis stickers</small></button>
+  </nav>
+
+  <dialog id="packDialog" class="modal">
+    <form method="dialog" id="packForm">
+      <div class="modal-head"><div><p class="eyebrow">PERSONALIZA</p><h2>Tu paquete</h2></div><button class="close-btn" value="cancel" aria-label="Cerrar">×</button></div>
+      <label class="field-label" for="packName">Nombre del paquete</label><input id="packName" class="text-input" maxlength="30" value="Mi paquete de stickers">
+      <label class="field-label" for="packAuthor">Autor</label><input id="packAuthor" class="text-input" maxlength="30" value="Creado por mí">
+      <button id="savePackBtn" class="primary-btn full-btn" value="save">Guardar cambios</button>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+STICKER STUDIO — primera versión
+
+ARCHIVOS
+- index.html: estructura de la aplicación.
+- style.css: diseño adaptable a móviles.
+- script.js: editor, borrador manual, texto, contornos, guardado y exportación.
+
+CÓMO ABRIR EN ANDROID
+1. Extrae la carpeta ZIP.
+2. Abre la carpeta en TrebEdit.
+3. Abre index.html con la vista previa del navegador.
+4. Importa una imagen y prueba las herramientas.
+
+FUNCIONES INCLUIDAS
+- Importar PNG, JPG y WEBP.
+- Ajustar tamaño y rotación.
+- Contorno y sombra.
+- Texto con tipografía, tamaño y color.
+- Borrador manual y restauración con pincel.
+- Deshacer el último trazo.
+- Guardar hasta 30 stickers en el almacenamiento local del navegador.
+- Descargar stickers WebP.
+- Compartir un sticker mediante el menú nativo de Android cuando el navegador lo admite.
+
+LIMITACIONES DE ESTA PRIMERA VERSIÓN
+- El borrado de fondo es manual. La eliminación automática con IA se añadirá después.
+- El botón Exportar stickers descarga los WebP individualmente; todavía no genera un paquete ZIP compatible con importadores.
+- Compartir usa la hoja de compartir de Android y no garantiza la importación directa a WhatsApp. La integración de paquetes requiere una app Android complementaria o un flujo compatible.
+- Los proyectos se guardan en el almacenamiento local del navegador. No borres los datos del navegador si quieres conservarlos.
+
+NOTA
+Para probar todas las funciones, usa un navegador moderno. La fuente DM Sans se carga desde Google Fonts; el resto de la aplicación funciona localmente.
