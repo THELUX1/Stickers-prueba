@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#11100f">
-<title>Nébula — Prueba de almacenamiento</title>
+<title>Nébula — Panel de Administración</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,597 +29,728 @@
     background: radial-gradient(ellipse at 50% -15%, #33271955, transparent 38%), var(--bg);
     color: var(--text);
     font-family: "DM Sans", sans-serif;
-    padding: 20px 16px 40px;
+    padding: 15px;
     min-height: 100vh;
   }
   
-  h1 {
-    font: 600 26px "Playfair Display", serif;
-    text-align: center;
-    margin: 0 0 8px;
-    color: var(--gold2);
+  h1, h2, h3 { font-family: "Playfair Display", serif; margin: 0; }
+  
+  /* Header */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    margin-bottom: 20px;
   }
   
-  p.subtitle {
+  .top-bar h1 { font-size: 20px; color: var(--gold2); }
+  .top-bar .user-info { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .btn-logout { background: none; border: 1px solid var(--red); color: var(--red); padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; }
+  
+  /* Login */
+  #loginScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
     text-align: center;
-    color: var(--muted);
-    font-size: 12px;
-    margin: 0 0 25px;
   }
+  #loginScreen h2 { font-size: 28px; margin-bottom: 10px; }
+  #loginScreen p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
   
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 18px;
-    padding: 18px;
-    margin-bottom: 16px;
-    box-shadow: 0 10px 30px #0004;
+    padding: 20px;
+    margin-bottom: 15px;
   }
   
-  label {
-    display: block;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
   
-  input[type="text"],
-  input[type="password"],
-  input[type="number"],
-  select {
+  input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, textarea {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--line);
     color: var(--text);
-    padding: 12px 14px;
-    border-radius: 12px;
+    padding: 12px;
+    border-radius: 10px;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
+    font-family: inherit;
+    margin-bottom: 12px;
   }
-  
-  input:focus, select:focus {
-    border-color: var(--gold);
-  }
-  
-  select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9186' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
-  }
-  
-  .file-input-wrapper {
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-    width: 100%;
-  }
-  
-  .file-input-wrapper input[type="file"] {
-    position: absolute;
-    left: 0;
-    top: 0;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  }
-  
-  .file-btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 16px;
-    border: 2px dashed var(--line);
-    border-radius: 14px;
-    color: var(--muted);
-    background: var(--surface2);
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-  
-  .file-input-wrapper:active .file-btn {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: #c9913d15;
-  }
-  
-  .preview-box {
-    display: none;
-    margin-top: 15px;
-    text-align: center;
-  }
-  
-  .preview-box.active { display: block; }
-  
-  .preview-box img {
-    max-width: 100%;
-    max-height: 220px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    object-fit: contain;
-    background: #000;
-  }
-  
-  .file-meta {
-    margin-top: 10px;
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  
-  .file-meta span { color: var(--text); font-weight: 500; }
-  
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+  textarea { resize: vertical; min-height: 80px; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); }
   
   .btn {
     width: 100%;
-    padding: 16px;
+    padding: 14px;
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
     font: 700 14px "Outfit", sans-serif;
     cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-    margin-top: 10px;
+    transition: transform 0.1s;
   }
-  
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary { background: linear-gradient(135deg, #e4b65f, #a96e2b); color: #21170c; }
+  .btn-secondary { background: var(--surface2); color: var(--gold2); border: 1px solid var(--line); }
+  .btn-danger { background: #d35f5f20; color: var(--red); border: 1px solid #d35f5f44; }
   
-  .btn-primary {
-    background: linear-gradient(135deg, #e4b65f, #a96e2b);
-    color: #21170c;
-    box-shadow: 0 6px 20px #c9913d30;
-  }
-  
-  .btn-copy {
-    background: var(--surface2);
-    color: var(--gold2);
-    border: 1px solid var(--line);
-    padding: 12px;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-  
-  .progress-container {
-    display: none;
-    margin-top: 15px;
-    background: var(--bg);
-    border-radius: 10px;
-    overflow: hidden;
-    height: 10px;
-    border: 1px solid var(--line);
-  }
-  
-  .progress-container.active { display: block; }
-  
-  .progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--gold), var(--gold2));
-    transition: width 0.2s;
-    border-radius: 10px;
-  }
-  
-  .message {
-    display: none;
-    margin-top: 15px;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 12px;
-    line-height: 1.5;
-    word-break: break-all;
-  }
-  
-  .message.error {
-    display: block;
-    background: #d35f5f15;
-    border: 1px solid #d35f5f44;
-    color: #f0a0a0;
-  }
-  
-  .message.success {
-    display: block;
-    background: #5ca99b15;
-    border: 1px solid #5ca99b44;
-    color: #a0e0d0;
-  }
-  
-  .result-box {
-    display: none;
-    margin-top: 15px;
-    padding: 15px;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-  }
-  
-  .result-box.active { display: block; }
-  
-  .result-box label { margin-bottom: 8px; }
-  
-  .result-url {
-    font-family: monospace;
-    font-size: 11px;
-    color: var(--gold2);
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+  .tab-btn {
+    flex: none;
+    padding: 10px 16px;
     background: var(--surface);
-    padding: 10px;
-    border-radius: 8px;
     border: 1px solid var(--line);
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  .security-note {
-    font-size: 10px;
     color: var(--muted);
-    text-align: center;
-    margin-top: 20px;
-    line-height: 1.5;
-    opacity: 0.7;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
   }
-
+  .tab-btn.active { background: var(--gold); border-color: var(--gold); color: #21170c; }
+  
+  /* Dashboard */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 15px; text-align: center; }
+  .stat-card h3 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; color: var(--gold2); }
+  
+  /* Obras List */
+  .work-item {
+    display: flex;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .work-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 8px; background: var(--bg); }
+  .work-info { flex: 1; min-width: 0; }
+  .work-info h4 { font-size: 14px; margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .work-info p { font-size: 11px; color: var(--muted); margin: 0; }
+  .work-actions { display: flex; gap: 5px; flex-direction: column; }
+  .btn-sm { padding: 6px 10px; font-size: 10px; border-radius: 8px; }
+  
+  /* Formularios */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  
+  /* Utilities */
   .hidden { display: none !important; }
+  .mt-10 { margin-top: 10px; }
+  .mb-10 { margin-bottom: 10px; }
+  .text-center { text-align: center; }
+  .text-muted { color: var(--muted); }
+  
+  /* Chapter list */
+  .chapter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface2);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .chapter-row .ch-actions { display: flex; gap: 8px; }
+  .chapter-row button { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0; }
+  .chapter-row button:hover { color: var(--gold); }
 </style>
 </head>
 <body>
 
-<h1>Nébula — Prueba de almacenamiento</h1>
-<p class="subtitle">Subida directa a Cloudflare R2</p>
-
-<div class="card">
-  <label>1. Seleccionar imagen de la galería</label>
-  <div class="file-input-wrapper">
-    <div class="file-btn" id="fileBtnText">📷 Toca para elegir una imagen</div>
-    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/avif,image/gif">
+<!-- Pantalla de Login -->
+<div id="loginScreen">
+  <h2>Acceso Administrativo</h2>
+  <p>Inicia sesión con tu cuenta de Nébula.</p>
+  <div class="card" style="width: 100%; max-width: 400px;">
+    <input type="email" id="adminEmail" placeholder="Correo electrónico">
+    <input type="password" id="adminPass" placeholder="Contraseña">
+    <button class="btn btn-primary" id="loginBtn">Entrar al Panel</button>
+    <p id="loginError" class="text-muted mt-10" style="color: var(--red); font-size: 12px; display: none;"></p>
   </div>
-  
-  <div class="preview-box" id="previewBox">
-    <img id="previewImg" src="" alt="Vista previa">
-    <div class="file-meta">
-      <div>Nombre: <span id="metaName">-</span></div>
-      <div>Tamaño: <span id="metaSize">-</span></div>
+</div>
+
+<!-- Panel Principal (Oculto hasta loguearse) -->
+<div id="adminPanel" class="hidden">
+  <div class="top-bar">
+    <h1>Panel Nébula</h1>
+    <div class="user-info">
+      <span id="adminName">Admin</span>
+      <button class="btn-logout" id="logoutBtn">Salir</button>
     </div>
   </div>
-</div>
 
-<div class="card">
-  <label>2. Configuración de la ruta</label>
-  <div class="grid-2" style="margin-bottom: 12px;">
-    <div>
-      <label>Carpeta</label>
-      <select id="folderSelect">
-        <option value="covers">covers (Portadas)</option>
-        <option value="comics">comics (Páginas)</option>
-      </select>
+  <!-- Tabs de navegación -->
+  <div class="tabs">
+    <button class="tab-btn active" data-view="dashboard">📊 Dashboard</button>
+    <button class="tab-btn" data-view="works">📚 Obras</button>
+    <button class="tab-btn" data-view="new-work">➕ Nueva Obra</button>
+  </div>
+
+  <!-- Vista: Dashboard -->
+  <div id="view-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Obras</h3>
+        <div class="value" id="statTotalWorks">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Capítulos</h3>
+        <div class="value" id="statTotalChapters">0</div>
+      </div>
     </div>
-    <div>
-      <label>ID de la obra</label>
-      <input type="text" id="comicId" placeholder="ej: obra123" value="obra123">
+    <div class="card">
+      <h3>Últimas obras agregadas</h3>
+      <div id="recentWorksList" class="mt-10">
+        <p class="text-muted text-center">Cargando...</p>
+      </div>
     </div>
   </div>
-  
-  <div id="chapterWrapper" class="hidden">
-    <label>Capítulo</label>
-    <input type="number" id="chapterNum" placeholder="ej: 1" value="1" min="1" style="margin-bottom: 12px;">
+
+  <!-- Vista: Lista de Obras -->
+  <div id="view-works" class="hidden">
+    <div class="card mb-10">
+      <input type="text" id="searchWorks" placeholder="Buscar obra por título...">
+    </div>
+    <div id="worksList">
+      <p class="text-muted text-center">Cargando obras...</p>
+    </div>
   </div>
-  
-  <label>Nombre del archivo (sin extensión)</label>
-  <input type="text" id="fileName" placeholder="ej: portada o pagina1" value="prueba">
+
+  <!-- Vista: Nueva Obra / Editar Obra -->
+  <div id="view-new-work" class="hidden">
+    <div class="card">
+      <h2 id="formTitle">Nueva Obra</h2>
+      <input type="hidden" id="editWorkId" value="">
+      
+      <label>Título Principal *</label>
+      <input type="text" id="workTitle" placeholder="Ej: Solo Leveling">
+      
+      <div class="form-row">
+        <div>
+          <label>Tipo *</label>
+          <select id="workType">
+            <option value="Manga">Manga</option>
+            <option value="Manhwa">Manhwa</option>
+            <option value="Manhua">Manhua</option>
+            <option value="Webtoon">Webtoon</option>
+            <option value="Cómic">Cómic</option>
+            <option value="Novela">Novela</option>
+          </select>
+        </div>
+        <div>
+          <label>Estado *</label>
+          <select id="workStatus">
+            <option value="En emisión">En emisión</option>
+            <option value="Finalizado">Finalizado</option>
+            <option value="En pausa">En pausa</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label>Autor</label>
+          <input type="text" id="workAuthor" placeholder="Ej: Chugong">
+        </div>
+        <div>
+          <label>Artista</label>
+          <input type="text" id="workArtist" placeholder="Ej: DUBU">
+        </div>
+      </div>
+
+      <label>Sinopsis</label>
+      <textarea id="workSynopsis" placeholder="Descripción de la obra..."></textarea>
+
+      <label>Géneros (separados por coma) *</label>
+      <input type="text" id="workGenres" placeholder="Ej: Acción, Fantasía, Aventura">
+
+      <label>Títulos Alternativos (separados por coma)</label>
+      <input type="text" id="workAltTitles" placeholder="Ej: Na Honjaman Level Up, I Level Up Alone">
+
+      <div class="form-row">
+        <div>
+          <label>Año de publicación</label>
+          <input type="number" id="workYear" placeholder="Ej: 2018">
+        </div>
+        <div>
+          <label>Demografía</label>
+          <select id="workDemographic">
+            <option value="">Seleccionar...</option>
+            <option value="Shonen">Shonen</option>
+            <option value="Seinen">Seinen</option>
+            <option value="Shojo">Shojo</option>
+            <option value="Josei">Josei</option>
+            <option value="Kodomo">Kodomo</option>
+            <option value="Adulto">Adulto</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Etiquetas (separadas por coma)</label>
+      <input type="text" id="workTags" placeholder="Ej: Reencarnación, Sistema, OP MC">
+
+      <div class="form-row">
+        <div>
+          <label>URL Portada *</label>
+          <input type="text" id="workCover" placeholder="https://...">
+          <button class="btn btn-secondary btn-sm mt-10" onclick="alert('La subida de imágenes se integrará en la Etapa 3. Por ahora pega la URL manualmente.')">📷 Subir Portada</button>
+        </div>
+        <div>
+          <label>URL Banner (Opcional)</label>
+          <input type="text" id="workBanner" placeholder="https://...">
+          <button class="btn btn-secondary btn-sm mt-10" onclick="alert('La subida de imágenes se integrará en la Etapa 3. Por ahora pega la URL manualmente.')">📷 Subir Banner</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary mt-10" id="saveWorkBtn">Guardar Obra</button>
+      <button class="btn btn-secondary mt-10" id="cancelEditBtn" style="display: none;">Cancelar Edición</button>
+    </div>
+
+    <!-- Sección de capítulos (solo visible al editar una obra existente) -->
+    <div class="card hidden" id="chaptersSection">
+      <h3>Gestión de Capítulos</h3>
+      <p class="text-muted mb-10" style="font-size: 12px;">Administra los capítulos de esta obra.</p>
+      
+      <div class="form-row">
+        <div>
+          <label>Número de Capítulo</label>
+          <input type="number" id="newChapNum" placeholder="Ej: 1" step="0.1">
+        </div>
+        <div>
+          <label>Título del Capítulo</label>
+          <input type="text" id="newChapTitle" placeholder="Ej: El despertar">
+        </div>
+      </div>
+      <button class="btn btn-secondary mb-10" id="addChapterBtn">Añadir Capítulo</button>
+      
+      <div id="adminChaptersList" class="mt-10">
+        <!-- Lista de capítulos inyectada por JS -->
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<div class="card">
-  <label>3. Token de Administrador</label>
-  <input type="password" id="adminToken" placeholder="Introduce el NEBULA_ADMIN_TOKEN">
-  <p style="font-size: 10px; color: var(--muted); margin: 8px 0 0; line-height: 1.4;">
-    El token solo se mantiene en memoria. No se guarda en ningún lado y se borra al cerrar la página.
-  </p>
-</div>
+<!-- Scripts de Firebase (Módulos) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-<div class="card">
-  <button class="btn btn-primary" id="uploadBtn" disabled>Subir imagen a R2</button>
-  
-  <div class="progress-container" id="progressContainer">
-    <div class="progress-bar" id="progressBar"></div>
-  </div>
-  
-  <div class="message" id="messageBox"></div>
-  
-  <div class="result-box" id="resultBox">
-    <label>URL Pública generada:</label>
-    <div class="result-url" id="resultUrl"></div>
-    <button class="btn btn-copy" id="copyBtn">📋 Copiar URL</button>
-  </div>
-</div>
-
-<p class="security-note">
-  Herramienta privada de prueba. No compartas esta página ni tu token.<br>
-  Límite de 15 MB por imagen.
-</p>
-
-<script>
-  const WORKER_URL = "https://nebula-upload.cristiandeniz669.workers.dev/upload";
-  const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
-  
-  const ALLOWED_MIMES = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/avif",
-    "image/gif"
-  ];
-  
-  const EXT_MAP = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/avif": "avif",
-    "image/gif": "gif"
+  // --- CONFIGURACIÓN ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyBBb2gnOqhAvWnzKBLo-m6bUC_UOYcs2XU",
+    authDomain: "stream-hs.firebaseapp.com",
+    projectId: "stream-hs",
+    storageBucket: "stream-hs.firebasestorage.app",
+    messagingSenderId: "875656637210",
+    appId: "1:875656637210:web:2f8978871a7be4bcd31aa3"
   };
 
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+
+  // UID de Administrador autorizado
+  const ADMIN_UID = "f5u3nXAQbLTVoDtR65MtclCgf0l1"; 
+
   const $ = (s) => document.querySelector(s);
+  let currentWorks = [];
 
-  const fileInput = $("#fileInput");
-  const fileBtnText = $("#fileBtnText");
-  const previewBox = $("#previewBox");
-  const previewImg = $("#previewImg");
-  const metaName = $("#metaName");
-  const metaSize = $("#metaSize");
-  const folderSelect = $("#folderSelect");
-  const comicIdInput = $("#comicId");
-  const chapterWrapper = $("#chapterWrapper");
-  const chapterNum = $("#chapterNum");
-  const fileNameInput = $("#fileName");
-  const adminTokenInput = $("#adminToken");
-  const uploadBtn = $("#uploadBtn");
-  const progressContainer = $("#progressContainer");
-  const progressBar = $("#progressBar");
-  const messageBox = $("#messageBox");
-  const resultBox = $("#resultBox");
-  const resultUrl = $("#resultUrl");
-  const copyBtn = $("#copyBtn");
-
-  let selectedFile = null;
-
-  // --- Lógica de UI ---
-  
-  folderSelect.addEventListener("change", () => {
-    if (folderSelect.value === "comics") {
-      chapterWrapper.classList.remove("hidden");
-    } else {
-      chapterWrapper.classList.add("hidden");
-    }
-    validateForm();
-  });
-
-  function showMessage(text, type) {
-    messageBox.textContent = text;
-    messageBox.className = "message " + type;
-  }
-
-  function hideMessage() {
-    messageBox.className = "message";
-  }
-
-  function formatBytes(bytes) {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  }
-
-  // Sanitiza el nombre para cumplir con la regex del Worker: [a-zA-Z0-9_-]+
-  function sanitizeName(name) {
-    return name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-      .replace(/[^a-zA-Z0-9_-]/g, "_") // Reemplazar caracteres no permitidos
-      .replace(/_+/g, "_") // Evitar guiones bajos múltiples
-      .replace(/^_+|_+$/g, ""); // Quitar guiones bajos al inicio/final
-  }
-
-  function validateForm() {
-    const hasFile = !!selectedFile;
-    const hasToken = adminTokenInput.value.trim().length > 0;
-    const hasComicId = comicIdInput.value.trim().length > 0;
-    const hasFileName = fileNameInput.value.trim().length > 0;
-    
-    let isValid = hasFile && hasToken && hasComicId && hasFileName;
-    
-    if (folderSelect.value === "comics") {
-      const chVal = chapterNum.value.trim();
-      if (!chVal || Number(chVal) < 1) isValid = false;
-    }
-    
-    uploadBtn.disabled = !isValid;
-  }
-
-  // --- Manejo de archivo ---
-
-  fileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    hideMessage();
-    resultBox.classList.remove("active");
-    
-    if (!file) {
-      selectedFile = null;
-      previewBox.classList.remove("active");
-      fileBtnText.textContent = "📷 Toca para elegir una imagen";
-      validateForm();
-      return;
-    }
-
-    if (!ALLOWED_MIMES.includes(file.type)) {
-      showMessage("Formato no permitido. Usa JPG, PNG, WEBP, AVIF o GIF.", "error");
-      selectedFile = null;
-      previewBox.classList.remove("active");
-      fileBtnText.textContent = "📷 Toca para elegir una imagen";
-      validateForm();
-      return;
-    }
-
-    if (file.size > MAX_SIZE) {
-      showMessage(`La imagen supera el límite de 15 MB. Tu archivo pesa ${formatBytes(file.size)}.`, "error");
-      selectedFile = null;
-      previewBox.classList.remove("active");
-      fileBtnText.textContent = "📷 Toca para elegir una imagen";
-      validateForm();
-      return;
-    }
-
-    selectedFile = file;
-    
-    // Mostrar vista previa
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      previewImg.src = ev.target.result;
-      previewBox.classList.add("active");
-    };
-    reader.readAsDataURL(file);
-
-    // Actualizar metadatos
-    fileBtnText.textContent = "✅ Imagen seleccionada";
-    metaName.textContent = file.name;
-    metaSize.textContent = formatBytes(file.size);
-    
-    // Autocompletar el nombre del archivo basado en el original si está vacío
-    if (!fileNameInput.value.trim() || fileNameInput.value === "prueba") {
-      const baseName = file.name.split(".")[0];
-      fileNameInput.value = sanitizeName(baseName) || "imagen";
-    }
-
-    validateForm();
-  });
-
-  adminTokenInput.addEventListener("input", validateForm);
-  comicIdInput.addEventListener("input", validateForm);
-  fileNameInput.addEventListener("input", validateForm);
-  chapterNum.addEventListener("input", validateForm);
-
-  // --- Subida ---
-
-  uploadBtn.addEventListener("click", () => {
-    if (!selectedFile) return;
-    
-    const token = adminTokenInput.value.trim();
-    const folder = folderSelect.value;
-    const comicId = sanitizeName(comicIdInput.value.trim());
-    const baseName = sanitizeName(fileNameInput.value.trim()) || "imagen";
-    const ext = EXT_MAP[selectedFile.type] || "jpg";
-    
-    // Construir la ruta
-    let keyPath = "";
-    if (folder === "covers") {
-      keyPath = `covers/${comicId}/${baseName}.${ext}`;
-    } else {
-      const ch = Number(chapterNum.value.trim()) || 1;
-      keyPath = `comics/${comicId}/capitulo${ch}/${baseName}.${ext}`;
-    }
-
-    // Validación local de la ruta (idéntica a la del Worker)
-    const validPath = /^(comics|covers)\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*\.(jpg|jpeg|png|webp|avif|gif)$/i;
-    if (!validPath.test(keyPath)) {
-      showMessage(`Ruta generada no válida: ${keyPath}. Revisa el ID y el nombre del archivo.`, "error");
-      return;
-    }
-
-    // Preparar UI
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = "Subiendo...";
-    hideMessage();
-    resultBox.classList.remove("active");
-    progressContainer.classList.add("active");
-    progressBar.style.width = "0%";
-
-    const xhr = new XMLHttpRequest();
-    const url = `${WORKER_URL}?key=${encodeURIComponent(keyPath)}`;
-    
-    xhr.open("PUT", url, true);
-    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-    xhr.setRequestHeader("Content-Type", selectedFile.type);
-    
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        progressBar.style.width = percent + "%";
+  // --- AUTENTICACIÓN Y SEGURIDAD ---
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Verificación estricta: Si el UID no coincide, expulsar.
+      if (user.uid !== ADMIN_UID) {
+        alert("No tienes permisos de administrador. Serás redirigido.");
+        signOut(auth);
+        return;
       }
-    };
-
-    xhr.onload = () => {
-      uploadBtn.disabled = false;
-      uploadBtn.textContent = "Subir imagen a R2";
       
-      try {
-        const res = JSON.parse(xhr.responseText);
-        
-        if (xhr.status >= 200 && xhr.status < 300 && res.success) {
-          showMessage("¡Imagen subida con éxito!", "success");
-          resultBox.classList.add("active");
-          resultUrl.textContent = res.url;
-          
-          // Guardar la URL en el botón de copiar
-          copyBtn.onclick = () => {
-            navigator.clipboard.writeText(res.url).then(() => {
-              copyBtn.textContent = "✅ ¡Copiado!";
-              setTimeout(() => { copyBtn.textContent = "📋 Copiar URL"; }, 2000);
-            }).catch(() => {
-              // Fallback para navegadores sin clipboard API
-              const el = document.createElement("textarea");
-              el.value = res.url;
-              document.body.appendChild(el);
-              el.select();
-              document.execCommand("copy");
-              document.body.removeChild(el);
-              copyBtn.textContent = "✅ ¡Copiado!";
-              setTimeout(() => { copyBtn.textContent = "📋 Copiar URL"; }, 2000);
-            });
-          };
-        } else {
-          showMessage(res.error || `Error del servidor (${xhr.status})`, "error");
-        }
-      } catch (e) {
-        showMessage(`Error inesperado. Respuesta del servidor: ${xhr.responseText || "Vacía"}`, "error");
+      $("#loginScreen").classList.add("hidden");
+      $("#adminPanel").classList.remove("hidden");
+      $("#adminName").textContent = user.email.split('@')[0];
+      loadDashboard();
+    } else {
+      $("#loginScreen").classList.remove("hidden");
+      $("#adminPanel").classList.add("hidden");
+    }
+  });
+
+  $("#loginBtn").onclick = async () => {
+    const email = $("#adminEmail").value;
+    const pass = $("#adminPass").value;
+    const err = $("#loginError");
+    err.style.display = "none";
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+      err.textContent = "Error: " + (e.code === 'auth/invalid-credential' ? 'Credenciales incorrectas' : e.message);
+      err.style.display = "block";
+    }
+  };
+
+  $("#logoutBtn").onclick = () => signOut(auth);
+
+  // --- NAVEGACIÓN TABS ---
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      
+      const view = btn.dataset.view;
+      ["dashboard", "works", "new-work"].forEach(v => {
+        $(`#view-${v}`).classList.add("hidden");
+      });
+      $(`#view-${view}`).classList.remove("hidden");
+      
+      if (view === "works") loadWorksList();
+      if (view === "new-work" && !$("#editWorkId").value) resetWorkForm();
+    };
+  });
+
+  // --- DASHBOARD ---
+  async function loadDashboard() {
+    try {
+      const worksSnap = await getDocs(collection(db, "works"));
+      let totalChaps = 0;
+      const works = [];
+      
+      worksSnap.forEach(doc => {
+        const data = doc.data();
+        works.push({ id: doc.id, ...data });
+        totalChaps += (data.chaptersCount || 0);
+      });
+      
+      $("#statTotalWorks").textContent = works.length;
+      $("#statTotalChapters").textContent = totalChaps;
+      
+      // Últimas 3 obras
+      works.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+      const recent = works.slice(0, 3);
+      
+      if (recent.length === 0) {
+        $("#recentWorksList").innerHTML = '<p class="text-muted text-center">No hay obras aún.</p>';
+      } else {
+        $("#recentWorksList").innerHTML = recent.map(w => `
+          <div class="work-item" style="padding: 8px;">
+            <img src="${w.cover || 'https://via.placeholder.com/50x70/191817/35302a?text=N'}" alt="">
+            <div class="work-info">
+              <h4>${w.title || 'Sin título'}</h4>
+              <p>${w.type || 'N/A'} · ${w.status || 'N/A'}</p>
+            </div>
+          </div>
+        `).join("");
       }
+      
+    } catch (error) {
+      console.error("Error cargando dashboard:", error);
+    }
+  }
+
+  // --- LISTA DE OBRAS ---
+  async function loadWorksList() {
+    const listEl = $("#worksList");
+    listEl.innerHTML = '<p class="text-muted text-center">Cargando...</p>';
+    try {
+      const snap = await getDocs(collection(db, "works"));
+      currentWorks = [];
+      snap.forEach(doc => currentWorks.push({ id: doc.id, ...doc.data() }));
+      
+      // Ordenar alfabéticamente
+      currentWorks.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      
+      renderWorksList(currentWorks);
+    } catch (error) {
+      listEl.innerHTML = `<p class="text-muted text-center" style="color:var(--red)">Error: ${error.message}</p>`;
+    }
+  }
+
+  function renderWorksList(works) {
+    const listEl = $("#worksList");
+    if (works.length === 0) {
+      listEl.innerHTML = '<p class="text-muted text-center">No se encontraron obras.</p>';
+      return;
+    }
+    
+    listEl.innerHTML = works.map(w => `
+      <div class="work-item">
+        <img src="${w.cover || 'https://via.placeholder.com/50x70/191817/35302a?text=N'}" alt="">
+        <div class="work-info">
+          <h4>${w.title || 'Sin título'}</h4>
+          <p>${w.type || 'N/A'} · ${w.status || 'N/A'} · ${w.chaptersCount || 0} caps</p>
+        </div>
+        <div class="work-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editWork('${w.id}')">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteWork('${w.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  $("#searchWorks").oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = currentWorks.filter(w => (w.title || "").toLowerCase().includes(term));
+    renderWorksList(filtered);
+  };
+
+  // --- FORMULARIO DE OBRA ---
+  function resetWorkForm() {
+    $("#editWorkId").value = "";
+    $("#formTitle").textContent = "Nueva Obra";
+    $("#workTitle").value = "";
+    $("#workType").value = "Manga";
+    $("#workStatus").value = "En emisión";
+    $("#workAuthor").value = "";
+    $("#workArtist").value = "";
+    $("#workSynopsis").value = "";
+    $("#workGenres").value = "";
+    $("#workAltTitles").value = "";
+    $("#workYear").value = "";
+    $("#workDemographic").value = "";
+    $("#workTags").value = "";
+    $("#workCover").value = "";
+    $("#workBanner").value = "";
+    $("#cancelEditBtn").style.display = "none";
+    $("#chaptersSection").classList.add("hidden");
+  }
+
+  window.editWork = async (id) => {
+    try {
+      const snap = await getDoc(doc(db, "works", id));
+      if (!snap.exists()) return alert("Obra no encontrada");
+      const w = snap.data();
+      
+      $("#editWorkId").value = id;
+      $("#formTitle").textContent = "Editar Obra";
+      $("#workTitle").value = w.title || "";
+      $("#workType").value = w.type || "Manga";
+      $("#workStatus").value = w.status || "En emisión";
+      $("#workAuthor").value = w.author || "";
+      $("#workArtist").value = w.artist || "";
+      $("#workSynopsis").value = w.synopsis || "";
+      $("#workGenres").value = (w.genres || []).join(", ");
+      $("#workAltTitles").value = (w.altTitles || []).join(", ");
+      $("#workYear").value = w.year || "";
+      $("#workDemographic").value = w.demographic || "";
+      $("#workTags").value = (w.tags || []).join(", ");
+      $("#workCover").value = w.cover || "";
+      $("#workBanner").value = w.banner || "";
+      
+      $("#cancelEditBtn").style.display = "block";
+      $("#chaptersSection").classList.remove("hidden");
+      
+      // Cambiar a la pestaña de edición
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelector('[data-view="new-work"]').classList.add("active");
+      ["dashboard", "works", "new-work"].forEach(v => {
+        $(`#view-${v}`).classList.add("hidden");
+      });
+      $("#view-new-work").classList.remove("hidden");
+      
+      loadAdminChapters(id);
+      
+    } catch (error) {
+      console.error(error);
+      alert("Error cargando la obra: " + error.message);
+    }
+  };
+
+  $("#cancelEditBtn").onclick = () => {
+    resetWorkForm();
+    document.querySelector('[data-view="works"]').click();
+  };
+
+  $("#saveWorkBtn").onclick = async () => {
+    const id = $("#editWorkId").value;
+    const title = $("#workTitle").value.trim();
+    if (!title) return alert("El título es obligatorio.");
+    
+    const genresRaw = $("#workGenres").value;
+    const genres = genresRaw.split(",").map(g => g.trim()).filter(g => g);
+    
+    const altRaw = $("#workAltTitles").value;
+    const altTitles = altRaw.split(",").map(a => a.trim()).filter(a => a);
+    
+    const tagsRaw = $("#workTags").value;
+    const tags = tagsRaw.split(",").map(t => t.trim()).filter(t => t);
+    
+    const workData = {
+      title,
+      type: $("#workType").value,
+      status: $("#workStatus").value,
+      author: $("#workAuthor").value.trim(),
+      artist: $("#workArtist").value.trim(),
+      synopsis: $("#workSynopsis").value.trim(),
+      genres,
+      altTitles,
+      year: Number($("#workYear").value) || null,
+      demographic: $("#workDemographic").value,
+      tags,
+      cover: $("#workCover").value.trim(),
+      banner: $("#workBanner").value.trim(),
+      updatedAt: serverTimestamp()
     };
+    
+    const btn = $("#saveWorkBtn");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+    
+    try {
+      if (id) {
+        // Actualizar
+        await updateDoc(doc(db, "works", id), workData);
+        alert("Obra actualizada correctamente.");
+      } else {
+        // Crear
+        workData.createdAt = serverTimestamp();
+        workData.chaptersCount = 0;
+        await addDoc(collection(db, "works"), workData);
+        alert("Obra creada correctamente.");
+        resetWorkForm();
+      }
+      loadDashboard();
+    } catch (error) {
+      console.error(error);
+      alert("Error guardando: " + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Guardar Obra";
+    }
+  };
 
-    xhr.onerror = () => {
-      uploadBtn.disabled = false;
-      uploadBtn.textContent = "Subir imagen a R2";
-      showMessage("Error de red. Revisa tu conexión a internet o la configuración CORS del Worker.", "error");
-    };
+  window.deleteWork = async (id) => {
+    if (!confirm("¿Estás seguro de eliminar esta obra? Se perderán sus capítulos asociados (las imágenes en R2 no se borrarán automáticamente).")) return;
+    try {
+      await deleteDoc(doc(db, "works", id));
+      // Opcional: Borrar capítulos asociados de la subcolección (requiere Cloud Functions o un bucle)
+      alert("Obra eliminada.");
+      loadWorksList();
+      loadDashboard();
+    } catch (error) {
+      alert("Error eliminando: " + error.message);
+    }
+  };
 
-    xhr.onabort = () => {
-      uploadBtn.disabled = false;
-      uploadBtn.textContent = "Subir imagen a R2";
-      showMessage("Subida cancelada.", "error");
-    };
+  // --- GESTIÓN DE CAPÍTULOS ---
+  let currentAdminChapters = [];
 
-    xhr.send(selectedFile);
-  });
+  async function loadAdminChapters(workId) {
+    const listEl = $("#adminChaptersList");
+    listEl.innerHTML = '<p class="text-muted text-center" style="font-size:12px;">Cargando capítulos...</p>';
+    
+    try {
+      const q = query(collection(db, "works", workId, "chapters"), orderBy("number", "desc"));
+      const snap = await getDocs(q);
+      
+      currentAdminChapters = [];
+      snap.forEach(doc => currentAdminChapters.push({ id: doc.id, ...doc.data() }));
+      
+      if (currentAdminChapters.length === 0) {
+        listEl.innerHTML = '<p class="text-muted text-center" style="font-size:12px;">No hay capítulos aún.</p>';
+      } else {
+        listEl.innerHTML = currentAdminChapters.map(ch => `
+          <div class="chapter-row">
+            <div>
+              <strong>Cap. ${ch.number}</strong> ${ch.title ? `- ${ch.title}` : ''}
+              <div style="font-size:10px; color:var(--muted); margin-top:2px;">${ch.pages?.length || 0} páginas</div>
+            </div>
+            <div class="ch-actions">
+              <button onclick="alert('La edición de capítulos estará disponible en la Etapa 3.')" title="Editar">✏️</button>
+              <button onclick="deleteChapter('${workId}', '${ch.id}')" title="Eliminar" style="color:var(--red)">✕</button>
+            </div>
+          </div>
+        `).join("");
+      }
+    } catch (error) {
+      console.error(error);
+      listEl.innerHTML = `<p class="text-muted text-center" style="color:var(--red); font-size:12px;">Error cargando capítulos: ${error.message}</p>`;
+    }
+  }
 
-  // Limpiar token al cerrar/ocultar la página por seguridad
-  window.addEventListener("beforeunload", () => {
-    adminTokenInput.value = "";
-  });
-  
-  // Ajuste inicial de la UI
-  validateForm();
+  $("#addChapterBtn").onclick = async () => {
+    const workId = $("#editWorkId").value;
+    if (!workId) return alert("Primero debes guardar la obra.");
+    
+    const num = parseFloat($("#newChapNum").value);
+    const title = $("#newChapTitle").value.trim();
+    
+    if (isNaN(num) || num <= 0) return alert("Introduce un número de capítulo válido.");
+    
+    // Verificar duplicados
+    const exists = currentAdminChapters.some(ch => Number(ch.number) === num);
+    if (exists) return alert("Ya existe un capítulo con ese número.");
+    
+    const btn = $("#addChapterBtn");
+    btn.disabled = true;
+    btn.textContent = "Añadiendo...";
+    
+    try {
+      await addDoc(collection(db, "works", workId, "chapters"), {
+        number: num,
+        title: title,
+        pages: [], // Se llenará en la Etapa 3
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Actualizar contador en la obra principal
+      const workRef = doc(db, "works", workId);
+      const workSnap = await getDoc(workRef);
+      if (workSnap.exists()) {
+        const currentCount = workSnap.data().chaptersCount || 0;
+        await updateDoc(workRef, { chaptersCount: currentCount + 1 });
+      }
+      
+      $("#newChapNum").value = "";
+      $("#newChapTitle").value = "";
+      loadAdminChapters(workId);
+      alert("Capítulo añadido.");
+    } catch (error) {
+      alert("Error: " + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Añadir Capítulo";
+    }
+  };
+
+  window.deleteChapter = async (workId, chapterId) => {
+    if (!confirm("¿Eliminar este capítulo? Las páginas no se borrarán de R2.")) return;
+    try {
+      await deleteDoc(doc(db, "works", workId, "chapters", chapterId));
+      
+      // Actualizar contador en la obra principal
+      const workRef = doc(db, "works", workId);
+      const workSnap = await getDoc(workRef);
+      if (workSnap.exists()) {
+        const currentCount = workSnap.data().chaptersCount || 1;
+        await updateDoc(workRef, { chaptersCount: Math.max(0, currentCount - 1) });
+      }
+      
+      loadAdminChapters(workId);
+    } catch (error) {
+      alert("Error eliminando capítulo: " + error.message);
+    }
+  };
+
+  // Inicializar formulario vacío
+  resetWorkForm();
+
 </script>
-
 </body>
 </html>
