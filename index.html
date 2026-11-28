@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root {
     --bg: #11100f;
@@ -155,18 +156,43 @@
   
   /* Chapter list */
   .chapter-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: var(--surface2);
-    padding: 10px 15px;
+    padding: 12px 15px;
     border-radius: 10px;
     margin-bottom: 8px;
     font-size: 13px;
   }
+  .chapter-row .ch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .chapter-row .ch-actions { display: flex; gap: 8px; }
   .chapter-row button { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0; }
   .chapter-row button:hover { color: var(--gold); }
+  .chapter-row .ch-pages-info { font-size: 11px; color: var(--muted); }
+  
+  /* Upload progress */
+  .progress-wrap { margin-top: 10px; background: var(--bg); border-radius: 8px; overflow: hidden; height: 8px; border: 1px solid var(--line); display: none; }
+  .progress-wrap.active { display: block; }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--gold2)); transition: width 0.2s; }
+  
+  /* Preview de páginas */
+  .pages-preview {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 0;
+    margin-top: 10px;
+  }
+  .pages-preview .page-thumb {
+    flex: none;
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #000;
+  }
+  
+  /* Input de archivo oculto */
+  .file-input-hidden { display: none; }
 </style>
 </head>
 <body>
@@ -183,7 +209,7 @@
   </div>
 </div>
 
-<!-- Panel Principal (Oculto hasta loguearse) -->
+<!-- Panel Principal -->
 <div id="adminPanel" class="hidden">
   <div class="top-bar">
     <h1>Panel Nébula</h1>
@@ -193,7 +219,6 @@
     </div>
   </div>
 
-  <!-- Tabs de navegación -->
   <div class="tabs">
     <button class="tab-btn active" data-view="dashboard">📊 Dashboard</button>
     <button class="tab-btn" data-view="works">📚 Obras</button>
@@ -304,16 +329,26 @@
       <label>Etiquetas (separadas por coma)</label>
       <input type="text" id="workTags" placeholder="Ej: Reencarnación, Sistema, OP MC">
 
+      <!-- NUEVO: Casilla para destacar obra -->
+      <label style="display:flex; align-items:center; gap:10px; background:var(--surface2); padding:12px; border-radius:10px; margin-bottom:15px; cursor:pointer;">
+        <input type="checkbox" id="workFeatured" style="width:auto; margin:0; transform:scale(1.3);">
+        <span style="font-size:12px; color:var(--gold2); font-weight:600;">⭐ Destacar esta obra en el inicio</span>
+      </label>
+
       <div class="form-row">
         <div>
           <label>URL Portada *</label>
           <input type="text" id="workCover" placeholder="https://...">
-          <button class="btn btn-secondary btn-sm mt-10" onclick="alert('La subida de imágenes se integrará en la Etapa 3. Por ahora pega la URL manualmente.')">📷 Subir Portada</button>
+          <button class="btn btn-secondary btn-sm mt-10" id="uploadCoverBtn" type="button">📷 Subir Portada</button>
+          <div class="progress-wrap" id="coverProgressWrap"><div class="progress-bar" id="coverProgressBar"></div></div>
+          <input type="file" id="coverFileInput" accept="image/*" class="file-input-hidden">
         </div>
         <div>
           <label>URL Banner (Opcional)</label>
           <input type="text" id="workBanner" placeholder="https://...">
-          <button class="btn btn-secondary btn-sm mt-10" onclick="alert('La subida de imágenes se integrará en la Etapa 3. Por ahora pega la URL manualmente.')">📷 Subir Banner</button>
+          <button class="btn btn-secondary btn-sm mt-10" id="uploadBannerBtn" type="button">📷 Subir Banner</button>
+          <div class="progress-wrap" id="bannerProgressWrap"><div class="progress-bar" id="bannerProgressBar"></div></div>
+          <input type="file" id="bannerFileInput" accept="image/*" class="file-input-hidden">
         </div>
       </div>
 
@@ -321,7 +356,7 @@
       <button class="btn btn-secondary mt-10" id="cancelEditBtn" style="display: none;">Cancelar Edición</button>
     </div>
 
-    <!-- Sección de capítulos (solo visible al editar una obra existente) -->
+    <!-- Sección de capítulos -->
     <div class="card hidden" id="chaptersSection">
       <h3>Gestión de Capítulos</h3>
       <p class="text-muted mb-10" style="font-size: 12px;">Administra los capítulos de esta obra.</p>
@@ -339,18 +374,21 @@
       <button class="btn btn-secondary mb-10" id="addChapterBtn">Añadir Capítulo</button>
       
       <div id="adminChaptersList" class="mt-10">
-        <!-- Lista de capítulos inyectada por JS -->
+        <!-- Lista de capítulos -->
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- Scripts de Firebase (Módulos) -->
+<!-- Input oculto para subir páginas de capítulos -->
+<input type="file" id="chapterPagesInput" multiple accept="image/*,.zip,.cbz" class="file-input-hidden">
+<input type="file" id="chapterZipInput" accept=".zip,.cbz" class="file-input-hidden">
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
   // --- CONFIGURACIÓN ---
   const firebaseConfig = {
@@ -365,23 +403,32 @@
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
+  window.firebaseAuth = auth;
 
-  // UID de Administrador autorizado
   const ADMIN_UID = "f5u3nXAQbLTVoDtR65MtclCgf0l1"; 
 
   const $ = (s) => document.querySelector(s);
   let currentWorks = [];
+  let currentAdminChapters = [];
+  let activeUploadChapterId = null;
 
-  // --- AUTENTICACIÓN Y SEGURIDAD ---
+  // --- UTILIDADES DE SUBIDA ---
+  let uploadUtils = null;
+  async function getUploadUtils() {
+    if (!uploadUtils) {
+      uploadUtils = await import("./upload-utils.js");
+    }
+    return uploadUtils;
+  }
+
+  // --- AUTENTICACIÓN ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // Verificación estricta: Si el UID no coincide, expulsar.
       if (user.uid !== ADMIN_UID) {
         alert("No tienes permisos de administrador. Serás redirigido.");
         signOut(auth);
         return;
       }
-      
       $("#loginScreen").classList.add("hidden");
       $("#adminPanel").classList.remove("hidden");
       $("#adminName").textContent = user.email.split('@')[0];
@@ -440,7 +487,6 @@
       $("#statTotalWorks").textContent = works.length;
       $("#statTotalChapters").textContent = totalChaps;
       
-      // Últimas 3 obras
       works.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
       const recent = works.slice(0, 3);
       
@@ -471,10 +517,7 @@
       const snap = await getDocs(collection(db, "works"));
       currentWorks = [];
       snap.forEach(doc => currentWorks.push({ id: doc.id, ...doc.data() }));
-      
-      // Ordenar alfabéticamente
       currentWorks.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-      
       renderWorksList(currentWorks);
     } catch (error) {
       listEl.innerHTML = `<p class="text-muted text-center" style="color:var(--red)">Error: ${error.message}</p>`;
@@ -492,7 +535,7 @@
       <div class="work-item">
         <img src="${w.cover || 'https://via.placeholder.com/50x70/191817/35302a?text=N'}" alt="">
         <div class="work-info">
-          <h4>${w.title || 'Sin título'}</h4>
+          <h4>${w.title || 'Sin título'} ${w.featured ? '⭐' : ''}</h4>
           <p>${w.type || 'N/A'} · ${w.status || 'N/A'} · ${w.chaptersCount || 0} caps</p>
         </div>
         <div class="work-actions">
@@ -524,10 +567,13 @@
     $("#workYear").value = "";
     $("#workDemographic").value = "";
     $("#workTags").value = "";
+    $("#workFeatured").checked = false; // <-- Nuevo
     $("#workCover").value = "";
     $("#workBanner").value = "";
     $("#cancelEditBtn").style.display = "none";
     $("#chaptersSection").classList.add("hidden");
+    $("#coverProgressWrap").classList.remove("active");
+    $("#bannerProgressWrap").classList.remove("active");
   }
 
   window.editWork = async (id) => {
@@ -549,13 +595,13 @@
       $("#workYear").value = w.year || "";
       $("#workDemographic").value = w.demographic || "";
       $("#workTags").value = (w.tags || []).join(", ");
+      $("#workFeatured").checked = w.featured || false; // <-- Nuevo
       $("#workCover").value = w.cover || "";
       $("#workBanner").value = w.banner || "";
       
       $("#cancelEditBtn").style.display = "block";
       $("#chaptersSection").classList.remove("hidden");
       
-      // Cambiar a la pestaña de edición
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       document.querySelector('[data-view="new-work"]').classList.add("active");
       ["dashboard", "works", "new-work"].forEach(v => {
@@ -581,14 +627,9 @@
     const title = $("#workTitle").value.trim();
     if (!title) return alert("El título es obligatorio.");
     
-    const genresRaw = $("#workGenres").value;
-    const genres = genresRaw.split(",").map(g => g.trim()).filter(g => g);
-    
-    const altRaw = $("#workAltTitles").value;
-    const altTitles = altRaw.split(",").map(a => a.trim()).filter(a => a);
-    
-    const tagsRaw = $("#workTags").value;
-    const tags = tagsRaw.split(",").map(t => t.trim()).filter(t => t);
+    const genres = $("#workGenres").value.split(",").map(g => g.trim()).filter(g => g);
+    const altTitles = $("#workAltTitles").value.split(",").map(a => a.trim()).filter(a => a);
+    const tags = $("#workTags").value.split(",").map(t => t.trim()).filter(t => t);
     
     const workData = {
       title,
@@ -602,6 +643,7 @@
       year: Number($("#workYear").value) || null,
       demographic: $("#workDemographic").value,
       tags,
+      featured: $("#workFeatured").checked, // <-- Nuevo
       cover: $("#workCover").value.trim(),
       banner: $("#workBanner").value.trim(),
       updatedAt: serverTimestamp()
@@ -613,11 +655,9 @@
     
     try {
       if (id) {
-        // Actualizar
         await updateDoc(doc(db, "works", id), workData);
         alert("Obra actualizada correctamente.");
       } else {
-        // Crear
         workData.createdAt = serverTimestamp();
         workData.chaptersCount = 0;
         await addDoc(collection(db, "works"), workData);
@@ -635,10 +675,9 @@
   };
 
   window.deleteWork = async (id) => {
-    if (!confirm("¿Estás seguro de eliminar esta obra? Se perderán sus capítulos asociados (las imágenes en R2 no se borrarán automáticamente).")) return;
+    if (!confirm("¿Estás seguro de eliminar esta obra? Se perderán sus capítulos asociados.")) return;
     try {
       await deleteDoc(doc(db, "works", id));
-      // Opcional: Borrar capítulos asociados de la subcolección (requiere Cloud Functions o un bucle)
       alert("Obra eliminada.");
       loadWorksList();
       loadDashboard();
@@ -647,9 +686,85 @@
     }
   };
 
-  // --- GESTIÓN DE CAPÍTULOS ---
-  let currentAdminChapters = [];
+  // --- SUBIDA DE PORTADA Y BANNER ---
+  $("#uploadCoverBtn").onclick = () => $("#coverFileInput").click();
+  $("#uploadBannerBtn").onclick = () => $("#bannerFileInput").click();
 
+  $("#coverFileInput").onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const workId = $("#editWorkId").value;
+    if (!workId) {
+      alert("Primero debes guardar la obra para generar un ID, y luego podrás subir la portada.");
+      return;
+    }
+
+    try {
+      const utils = await getUploadUtils();
+      const ext = utils.EXT_MAP[file.type] || "jpg";
+      const path = utils.getCoverPath(workId, ext);
+      
+      $("#coverProgressWrap").classList.add("active");
+      $("#coverProgressBar").style.width = "0%";
+      $("#uploadCoverBtn").disabled = true;
+      
+      const url = await utils.uploadToR2(file, path, (p) => {
+        $("#coverProgressBar").style.width = p + "%";
+      });
+      
+      $("#workCover").value = url;
+      alert("Portada subida correctamente.");
+    } catch (error) {
+      alert("Error subiendo portada: " + error.message);
+    } finally {
+      $("#uploadCoverBtn").disabled = false;
+      setTimeout(() => {
+        $("#coverProgressWrap").classList.remove("active");
+        $("#coverProgressBar").style.width = "0%";
+      }, 1000);
+      e.target.value = "";
+    }
+  };
+
+  $("#bannerFileInput").onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const workId = $("#editWorkId").value;
+    if (!workId) {
+      alert("Primero debes guardar la obra para generar un ID, y luego podrás subir el banner.");
+      return;
+    }
+
+    try {
+      const utils = await getUploadUtils();
+      const ext = utils.EXT_MAP[file.type] || "jpg";
+      const path = utils.getBannerPath(workId, ext);
+      
+      $("#bannerProgressWrap").classList.add("active");
+      $("#bannerProgressBar").style.width = "0%";
+      $("#uploadBannerBtn").disabled = true;
+      
+      const url = await utils.uploadToR2(file, path, (p) => {
+        $("#bannerProgressBar").style.width = p + "%";
+      });
+      
+      $("#workBanner").value = url;
+      alert("Banner subido correctamente.");
+    } catch (error) {
+      alert("Error subiendo banner: " + error.message);
+    } finally {
+      $("#uploadBannerBtn").disabled = false;
+      setTimeout(() => {
+        $("#bannerProgressWrap").classList.remove("active");
+        $("#bannerProgressBar").style.width = "0%";
+      }, 1000);
+      e.target.value = "";
+    }
+  };
+
+  // --- GESTIÓN DE CAPÍTULOS ---
   async function loadAdminChapters(workId) {
     const listEl = $("#adminChaptersList");
     listEl.innerHTML = '<p class="text-muted text-center" style="font-size:12px;">Cargando capítulos...</p>';
@@ -666,20 +781,23 @@
       } else {
         listEl.innerHTML = currentAdminChapters.map(ch => `
           <div class="chapter-row">
-            <div>
-              <strong>Cap. ${ch.number}</strong> ${ch.title ? `- ${ch.title}` : ''}
-              <div style="font-size:10px; color:var(--muted); margin-top:2px;">${ch.pages?.length || 0} páginas</div>
+            <div class="ch-header">
+              <div>
+                <strong>Cap. ${ch.number}</strong> ${ch.title ? `- ${ch.title}` : ''}
+              </div>
+              <div class="ch-actions">
+                <button onclick="uploadPagesToChapter('${workId}', '${ch.id}')" title="Subir páginas">📤</button>
+                <button onclick="deleteChapter('${workId}', '${ch.id}')" title="Eliminar" style="color:var(--red)">✕</button>
+              </div>
             </div>
-            <div class="ch-actions">
-              <button onclick="alert('La edición de capítulos estará disponible en la Etapa 3.')" title="Editar">✏️</button>
-              <button onclick="deleteChapter('${workId}', '${ch.id}')" title="Eliminar" style="color:var(--red)">✕</button>
-            </div>
+            <div class="ch-pages-info">${ch.pages?.length || 0} páginas</div>
+            <div class="progress-wrap" id="ch-progress-${ch.id}"><div class="progress-bar" id="ch-bar-${ch.id}"></div></div>
           </div>
         `).join("");
       }
     } catch (error) {
       console.error(error);
-      listEl.innerHTML = `<p class="text-muted text-center" style="color:var(--red); font-size:12px;">Error cargando capítulos: ${error.message}</p>`;
+      listEl.innerHTML = `<p class="text-muted text-center" style="color:var(--red); font-size:12px;">Error: ${error.message}</p>`;
     }
   }
 
@@ -690,9 +808,8 @@
     const num = parseFloat($("#newChapNum").value);
     const title = $("#newChapTitle").value.trim();
     
-    if (isNaN(num) || num <= 0) return alert("Introduce un número de capítulo válido.");
+    if (isNaN(num) || num <= 0) return alert("Introduce un número válido.");
     
-    // Verificar duplicados
     const exists = currentAdminChapters.some(ch => Number(ch.number) === num);
     if (exists) return alert("Ya existe un capítulo con ese número.");
     
@@ -704,12 +821,11 @@
       await addDoc(collection(db, "works", workId, "chapters"), {
         number: num,
         title: title,
-        pages: [], // Se llenará en la Etapa 3
+        pages: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
       
-      // Actualizar contador en la obra principal
       const workRef = doc(db, "works", workId);
       const workSnap = await getDoc(workRef);
       if (workSnap.exists()) {
@@ -730,25 +846,136 @@
   };
 
   window.deleteChapter = async (workId, chapterId) => {
-    if (!confirm("¿Eliminar este capítulo? Las páginas no se borrarán de R2.")) return;
+    if (!confirm("¿Eliminar este capítulo?")) return;
     try {
       await deleteDoc(doc(db, "works", workId, "chapters", chapterId));
-      
-      // Actualizar contador en la obra principal
       const workRef = doc(db, "works", workId);
       const workSnap = await getDoc(workRef);
       if (workSnap.exists()) {
         const currentCount = workSnap.data().chaptersCount || 1;
         await updateDoc(workRef, { chaptersCount: Math.max(0, currentCount - 1) });
       }
-      
       loadAdminChapters(workId);
     } catch (error) {
-      alert("Error eliminando capítulo: " + error.message);
+      alert("Error: " + error.message);
     }
   };
 
-  // Inicializar formulario vacío
+  // --- SUBIDA DE PÁGINAS A UN CAPÍTULO ---
+  window.uploadPagesToChapter = (workId, chapterId) => {
+    activeUploadChapterId = chapterId;
+    $("#chapterZipInput").click();
+  };
+
+  $("#chapterZipInput").onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const workId = $("#editWorkId").value;
+    const chapterId = activeUploadChapterId;
+    if (!workId || !chapterId) return alert("Error: falta ID de obra o capítulo.");
+    
+    const progressWrap = $(`#ch-progress-${chapterId}`);
+    const progressBar = $(`#ch-bar-${chapterId}`);
+    
+    try {
+      progressWrap.classList.add("active");
+      progressBar.style.width = "0%";
+      
+      // 1. Extraer imágenes del ZIP/CBZ
+      let imageFiles = [];
+      
+      if (file.name.toLowerCase().endsWith(".zip") || file.name.toLowerCase().endsWith(".cbz")) {
+        alert("Extrayendo archivo ZIP/CBZ... Esto puede tardar unos segundos.");
+        
+        const zip = await JSZip.loadAsync(file);
+        const entries = [];
+        
+        zip.forEach((relativePath, zipEntry) => {
+          if (zipEntry.dir) return;
+          const name = zipEntry.name.toLowerCase();
+          if (name.startsWith('__') || name.includes('/.')) return;
+          if (/\.(jpg|jpeg|png|webp|avif|gif)$/i.test(name)) {
+            entries.push(zipEntry);
+          }
+        });
+        
+        entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+        
+        for (const entry of entries) {
+          const blob = await entry.async("blob");
+          const ext = entry.name.split('.').pop().toLowerCase();
+          const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                           ext === 'png' ? 'image/png' :
+                           ext === 'webp' ? 'image/webp' :
+                           ext === 'avif' ? 'image/avif' : 'image/gif';
+          const f = new File([blob], entry.name, { type: mimeType });
+          imageFiles.push(f);
+        }
+      } else {
+        imageFiles = [file];
+      }
+      
+      if (imageFiles.length === 0) {
+        throw new Error("No se encontraron imágenes válidas en el archivo.");
+      }
+      
+      alert(`Se encontraron ${imageFiles.length} páginas. Comenzando subida...`);
+      
+      // 2. Subir cada imagen a R2
+      const utils = await getUploadUtils();
+      const uploadedUrls = [];
+      let failedCount = 0;
+      
+      for (let i = 0; i < imageFiles.length; i++) {
+        const imgFile = imageFiles[i];
+        const pageNum = i + 1;
+        const ext = utils.EXT_MAP[imgFile.type] || 'jpg';
+        const path = utils.getPagePath(workId, chapterId, pageNum, ext);
+        
+        try {
+          const url = await utils.uploadToR2(imgFile, path, (p) => {
+            const overall = Math.round(((i + p / 100) / imageFiles.length) * 100);
+            progressBar.style.width = overall + "%";
+          });
+          uploadedUrls.push(url);
+        } catch (err) {
+          console.error(`Error subiendo página ${pageNum}:`, err);
+          failedCount++;
+        }
+      }
+      
+      // 3. Guardar URLs en Firestore
+      if (uploadedUrls.length > 0) {
+        await updateDoc(doc(db, "works", workId, "chapters", chapterId), {
+          pages: uploadedUrls,
+          updatedAt: serverTimestamp()
+        });
+      }
+      
+      progressBar.style.width = "100%";
+      
+      if (failedCount > 0) {
+        alert(`Subida completada con errores.\n${uploadedUrls.length} páginas subidas.\n${failedCount} fallaron.`);
+      } else {
+        alert(`¡Capítulo completo! ${uploadedUrls.length} páginas subidas correctamente.`);
+      }
+      
+      loadAdminChapters(workId);
+      
+    } catch (error) {
+      console.error(error);
+      alert("Error en la subida: " + error.message);
+    } finally {
+      setTimeout(() => {
+        if (progressWrap) progressWrap.classList.remove("active");
+        if (progressBar) progressBar.style.width = "0%";
+      }, 1500);
+      e.target.value = "";
+    }
+  };
+
+  // Inicializar
   resetWorkForm();
 
 </script>
