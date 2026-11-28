@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#11100f">
+<title>Nébula — Prueba de almacenamiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #11100f;
+    --surface: #191817;
+    --surface2: #24211d;
+    --text: #f1eadf;
+    --muted: #9a9186;
+    --line: #35302a;
+    --gold: #c9913d;
+    --gold2: #e7b96f;
+    --green: #5ca99b;
+    --red: #d35f5f;
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -15%, #33271955, transparent 38%), var(--bg);
+    color: var(--text);
+    font-family: "DM Sans", sans-serif;
+    padding: 20px 16px 40px;
+    min-height: 100vh;
+  }
+  
+  h1 {
+    font: 600 26px "Playfair Display", serif;
+    text-align: center;
+    margin: 0 0 8px;
+    color: var(--gold2);
+  }
+  
+  p.subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 0 25px;
+  }
+  
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 30px #0004;
+  }
+  
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  input:focus, select:focus {
+    border-color: var(--gold);
+  }
+  
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9186' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+  
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+  }
+  
+  .file-input-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  .file-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 16px;
+    border: 2px dashed var(--line);
+    border-radius: 14px;
+    color: var(--muted);
+    background: var(--surface2);
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  
+  .file-input-wrapper:active .file-btn {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: #c9913d15;
+  }
+  
+  .preview-box {
+    display: none;
+    margin-top: 15px;
+    text-align: center;
+  }
+  
+  .preview-box.active { display: block; }
+  
+  .preview-box img {
+    max-width: 100%;
+    max-height: 220px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    object-fit: contain;
+    background: #000;
+  }
+  
+  .file-meta {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .file-meta span { color: var(--text); font-weight: 500; }
+  
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font: 700 14px "Outfit", sans-serif;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    margin-top: 10px;
+  }
+  
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #e4b65f, #a96e2b);
+    color: #21170c;
+    box-shadow: 0 6px 20px #c9913d30;
+  }
+  
+  .btn-copy {
+    background: var(--surface2);
+    color: var(--gold2);
+    border: 1px solid var(--line);
+    padding: 12px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  
+  .progress-container {
+    display: none;
+    margin-top: 15px;
+    background: var(--bg);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 10px;
+    border: 1px solid var(--line);
+  }
+  
+  .progress-container.active { display: block; }
+  
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+    transition: width 0.2s;
+    border-radius: 10px;
+  }
+  
+  .message {
+    display: none;
+    margin-top: 15px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+  
+  .message.error {
+    display: block;
+    background: #d35f5f15;
+    border: 1px solid #d35f5f44;
+    color: #f0a0a0;
+  }
+  
+  .message.success {
+    display: block;
+    background: #5ca99b15;
+    border: 1px solid #5ca99b44;
+    color: #a0e0d0;
+  }
+  
+  .result-box {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  
+  .result-box.active { display: block; }
+  
+  .result-box label { margin-bottom: 8px; }
+  
+  .result-url {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--gold2);
+    background: var(--surface);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .security-note {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.5;
+    opacity: 0.7;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<h1>Nébula — Prueba de almacenamiento</h1>
+<p class="subtitle">Subida directa a Cloudflare R2</p>
+
+<div class="card">
+  <label>1. Seleccionar imagen de la galería</label>
+  <div class="file-input-wrapper">
+    <div class="file-btn" id="fileBtnText">📷 Toca para elegir una imagen</div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/avif,image/gif">
+  </div>
+  
+  <div class="preview-box" id="previewBox">
+    <img id="previewImg" src="" alt="Vista previa">
+    <div class="file-meta">
+      <div>Nombre: <span id="metaName">-</span></div>
+      <div>Tamaño: <span id="metaSize">-</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <label>2. Configuración de la ruta</label>
+  <div class="grid-2" style="margin-bottom: 12px;">
+    <div>
+      <label>Carpeta</label>
+      <select id="folderSelect">
+        <option value="covers">covers (Portadas)</option>
+        <option value="comics">comics (Páginas)</option>
+      </select>
+    </div>
+    <div>
+      <label>ID de la obra</label>
+      <input type="text" id="comicId" placeholder="ej: obra123" value="obra123">
+    </div>
+  </div>
+  
+  <div id="chapterWrapper" class="hidden">
+    <label>Capítulo</label>
+    <input type="number" id="chapterNum" placeholder="ej: 1" value="1" min="1" style="margin-bottom: 12px;">
+  </div>
+  
+  <label>Nombre del archivo (sin extensión)</label>
+  <input type="text" id="fileName" placeholder="ej: portada o pagina1" value="prueba">
+</div>
+
+<div class="card">
+  <label>3. Token de Administrador</label>
+  <input type="password" id="adminToken" placeholder="Introduce el NEBULA_ADMIN_TOKEN">
+  <p style="font-size: 10px; color: var(--muted); margin: 8px 0 0; line-height: 1.4;">
+    El token solo se mantiene en memoria. No se guarda en ningún lado y se borra al cerrar la página.
+  </p>
+</div>
+
+<div class="card">
+  <button class="btn btn-primary" id="uploadBtn" disabled>Subir imagen a R2</button>
+  
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  
+  <div class="message" id="messageBox"></div>
+  
+  <div class="result-box" id="resultBox">
+    <label>URL Pública generada:</label>
+    <div class="result-url" id="resultUrl"></div>
+    <button class="btn btn-copy" id="copyBtn">📋 Copiar URL</button>
+  </div>
+</div>
+
+<p class="security-note">
+  Herramienta privada de prueba. No compartas esta página ni tu token.<br>
+  Límite de 15 MB por imagen.
+</p>
+
+<script>
+  const WORKER_URL = "https://nebula-upload.cristiandeniz669.workers.dev/upload";
+  const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
+  
+  const ALLOWED_MIMES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+    "image/gif"
+  ];
+  
+  const EXT_MAP = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/avif": "avif",
+    "image/gif": "gif"
+  };
+
+  const $ = (s) => document.querySelector(s);
+
+  const fileInput = $("#fileInput");
+  const fileBtnText = $("#fileBtnText");
+  const previewBox = $("#previewBox");
+  const previewImg = $("#previewImg");
+  const metaName = $("#metaName");
+  const metaSize = $("#metaSize");
+  const folderSelect = $("#folderSelect");
+  const comicIdInput = $("#comicId");
+  const chapterWrapper = $("#chapterWrapper");
+  const chapterNum = $("#chapterNum");
+  const fileNameInput = $("#fileName");
+  const adminTokenInput = $("#adminToken");
+  const uploadBtn = $("#uploadBtn");
+  const progressContainer = $("#progressContainer");
+  const progressBar = $("#progressBar");
+  const messageBox = $("#messageBox");
+  const resultBox = $("#resultBox");
+  const resultUrl = $("#resultUrl");
+  const copyBtn = $("#copyBtn");
+
+  let selectedFile = null;
+
+  // --- Lógica de UI ---
+  
+  folderSelect.addEventListener("change", () => {
+    if (folderSelect.value === "comics") {
+      chapterWrapper.classList.remove("hidden");
+    } else {
+      chapterWrapper.classList.add("hidden");
+    }
+    validateForm();
+  });
+
+  function showMessage(text, type) {
+    messageBox.textContent = text;
+    messageBox.className = "message " + type;
+  }
+
+  function hideMessage() {
+    messageBox.className = "message";
+  }
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  // Sanitiza el nombre para cumplir con la regex del Worker: [a-zA-Z0-9_-]+
+  function sanitizeName(name) {
+    return name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+      .replace(/[^a-zA-Z0-9_-]/g, "_") // Reemplazar caracteres no permitidos
+      .replace(/_+/g, "_") // Evitar guiones bajos múltiples
+      .replace(/^_+|_+$/g, ""); // Quitar guiones bajos al inicio/final
+  }
+
+  function validateForm() {
+    const hasFile = !!selectedFile;
+    const hasToken = adminTokenInput.value.trim().length > 0;
+    const hasComicId = comicIdInput.value.trim().length > 0;
+    const hasFileName = fileNameInput.value.trim().length > 0;
+    
+    let isValid = hasFile && hasToken && hasComicId && hasFileName;
+    
+    if (folderSelect.value === "comics") {
+      const chVal = chapterNum.value.trim();
+      if (!chVal || Number(chVal) < 1) isValid = false;
+    }
+    
+    uploadBtn.disabled = !isValid;
+  }
+
+  // --- Manejo de archivo ---
+
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    hideMessage();
+    resultBox.classList.remove("active");
+    
+    if (!file) {
+      selectedFile = null;
+      previewBox.classList.remove("active");
+      fileBtnText.textContent = "📷 Toca para elegir una imagen";
+      validateForm();
+      return;
+    }
+
+    if (!ALLOWED_MIMES.includes(file.type)) {
+      showMessage("Formato no permitido. Usa JPG, PNG, WEBP, AVIF o GIF.", "error");
+      selectedFile = null;
+      previewBox.classList.remove("active");
+      fileBtnText.textContent = "📷 Toca para elegir una imagen";
+      validateForm();
+      return;
+    }
+
+    if (file.size > MAX_SIZE) {
+      showMessage(`La imagen supera el límite de 15 MB. Tu archivo pesa ${formatBytes(file.size)}.`, "error");
+      selectedFile = null;
+      previewBox.classList.remove("active");
+      fileBtnText.textContent = "📷 Toca para elegir una imagen";
+      validateForm();
+      return;
+    }
+
+    selectedFile = file;
+    
+    // Mostrar vista previa
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      previewImg.src = ev.target.result;
+      previewBox.classList.add("active");
+    };
+    reader.readAsDataURL(file);
+
+    // Actualizar metadatos
+    fileBtnText.textContent = "✅ Imagen seleccionada";
+    metaName.textContent = file.name;
+    metaSize.textContent = formatBytes(file.size);
+    
+    // Autocompletar el nombre del archivo basado en el original si está vacío
+    if (!fileNameInput.value.trim() || fileNameInput.value === "prueba") {
+      const baseName = file.name.split(".")[0];
+      fileNameInput.value = sanitizeName(baseName) || "imagen";
+    }
+
+    validateForm();
+  });
+
+  adminTokenInput.addEventListener("input", validateForm);
+  comicIdInput.addEventListener("input", validateForm);
+  fileNameInput.addEventListener("input", validateForm);
+  chapterNum.addEventListener("input", validateForm);
+
+  // --- Subida ---
+
+  uploadBtn.addEventListener("click", () => {
+    if (!selectedFile) return;
+    
+    const token = adminTokenInput.value.trim();
+    const folder = folderSelect.value;
+    const comicId = sanitizeName(comicIdInput.value.trim());
+    const baseName = sanitizeName(fileNameInput.value.trim()) || "imagen";
+    const ext = EXT_MAP[selectedFile.type] || "jpg";
+    
+    // Construir la ruta
+    let keyPath = "";
+    if (folder === "covers") {
+      keyPath = `covers/${comicId}/${baseName}.${ext}`;
+    } else {
+      const ch = Number(chapterNum.value.trim()) || 1;
+      keyPath = `comics/${comicId}/capitulo${ch}/${baseName}.${ext}`;
+    }
+
+    // Validación local de la ruta (idéntica a la del Worker)
+    const validPath = /^(comics|covers)\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*\.(jpg|jpeg|png|webp|avif|gif)$/i;
+    if (!validPath.test(keyPath)) {
+      showMessage(`Ruta generada no válida: ${keyPath}. Revisa el ID y el nombre del archivo.`, "error");
+      return;
+    }
+
+    // Preparar UI
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = "Subiendo...";
+    hideMessage();
+    resultBox.classList.remove("active");
+    progressContainer.classList.add("active");
+    progressBar.style.width = "0%";
+
+    const xhr = new XMLHttpRequest();
+    const url = `${WORKER_URL}?key=${encodeURIComponent(keyPath)}`;
+    
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("Content-Type", selectedFile.type);
+    
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        progressBar.style.width = percent + "%";
+      }
+    };
+
+    xhr.onload = () => {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "Subir imagen a R2";
+      
+      try {
+        const res = JSON.parse(xhr.responseText);
+        
+        if (xhr.status >= 200 && xhr.status < 300 && res.success) {
+          showMessage("¡Imagen subida con éxito!", "success");
+          resultBox.classList.add("active");
+          resultUrl.textContent = res.url;
+          
+          // Guardar la URL en el botón de copiar
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(res.url).then(() => {
+              copyBtn.textContent = "✅ ¡Copiado!";
+              setTimeout(() => { copyBtn.textContent = "📋 Copiar URL"; }, 2000);
+            }).catch(() => {
+              // Fallback para navegadores sin clipboard API
+              const el = document.createElement("textarea");
+              el.value = res.url;
+              document.body.appendChild(el);
+              el.select();
+              document.execCommand("copy");
+              document.body.removeChild(el);
+              copyBtn.textContent = "✅ ¡Copiado!";
+              setTimeout(() => { copyBtn.textContent = "📋 Copiar URL"; }, 2000);
+            });
+          };
+        } else {
+          showMessage(res.error || `Error del servidor (${xhr.status})`, "error");
+        }
+      } catch (e) {
+        showMessage(`Error inesperado. Respuesta del servidor: ${xhr.responseText || "Vacía"}`, "error");
+      }
+    };
+
+    xhr.onerror = () => {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "Subir imagen a R2";
+      showMessage("Error de red. Revisa tu conexión a internet o la configuración CORS del Worker.", "error");
+    };
+
+    xhr.onabort = () => {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "Subir imagen a R2";
+      showMessage("Subida cancelada.", "error");
+    };
+
+    xhr.send(selectedFile);
+  });
+
+  // Limpiar token al cerrar/ocultar la página por seguridad
+  window.addEventListener("beforeunload", () => {
+    adminTokenInput.value = "";
+  });
+  
+  // Ajuste inicial de la UI
+  validateForm();
+</script>
+
+</body>
+</html>
